@@ -1,45 +1,76 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Organizer Dashboard</title>
     {% include "cdn/cdn.html" %}
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-100">
+
     {% include "share/navbar.html" %}
 
     <div class="container mx-auto my-8 px-4">
-        <h1 class="text-3xl font-bold text-blue-500 mb-6">Organizer Dashboard</h1>
-        
-        <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4  gap-6 font-bold text-white">
-            <div class="border-4 border-blue-600 py-12 my-4p-8 rounded-lg  text-center">
-                <h2 class="text-lg font-bold">Total Participants</h2>
-                <p class="text-2xl">{{ total_participants }}</p>
-            </div>
-            <div class="border-4 border-blue-600 p-8 rounded-lg shadow text-center">
-                <h2 class="text-lg font-bold">Total Events</h2>
-                <p class="text-2xl">{{ total_events }}</p>
-            </div>
-            <div class="border-4 border-blue-600 p-8 rounded-lg shadow text-center">
-                <h2 class="text-lg font-bold">Upcoming Events</h2>
-                <p class="text-2xl">{{ upcoming_events }}</p>
-            </div>
-            <div class="border-4 border-blue-600  p-8 rounded-lg shadow text-center">
-                <h2 class="text-lg font-bold">Past Events</h2>
-                <p class="text-2xl">{{ past_events }}</p>
-            </div>
+        <h1 class="text-3xl font-bold text-blue-600 mb-6 text-center">📊 Organizer Dashboard</h1>
+
+        <!-- Summary Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                <thead class="bg-blue-600 text-white">
+                    <tr>
+                        <th class="py-3 px-6 text-left">📌 Category</th>
+                        <th class="py-3 px-6 text-center">🔢 Count</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    <tr class="border-b hover:bg-gray-100">
+                        <td class="py-4 px-6">👥 Total Participants</td>
+                        <td class="py-4 px-6 text-center font-bold text-blue-600">{{ total_participants }}</td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-100">
+                        <td class="py-4 px-6">📅 Total Events</td>
+                        <td class="py-4 px-6 text-center font-bold text-green-600">{{ total_events }}</td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-100">
+                        <td class="py-4 px-6">⏳ Upcoming Events</td>
+                        <td class="py-4 px-6 text-center font-bold text-yellow-500">{{ upcoming_events }}</td>
+                    </tr>
+                    <tr class="hover:bg-gray-100">
+                        <td class="py-4 px-6">⏳ Past Events</td>
+                        <td class="py-4 px-6 text-center font-bold text-red-500">{{ past_events }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <h2 class="text-2xl font-bold text-blue-600 mt-8">Today's Events</h2>
-        <ul class="list-disc pl-6">
-            {% for event in todays_events %}
-                <li class="list-none text-2xl font-bold my-3 text-white">{{ event.name }} - {{ event.time }}</li>
-            {% empty %}
-                <li class="list-none text-3xl font-bold my-3 text-white">No events scheduled for today</li>
-            {% endfor %} 
-        </ul> 
+        <!-- Today's Events Table -->
+        <h2 class="text-2xl font-bold text-blue-600 mt-8">📅 Today's Events</h2>
+        <div class="overflow-x-auto mt-4">
+            <table class="min-w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                <thead class="bg-green-600 text-white">
+                    <tr>
+                        <th class="py-3 px-6 text-left">🎟️ Event Name</th>
+                        <th class="py-3 px-6 text-left">⏰ Time</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for event in todays_events %}
+                        <tr class="border-b hover:bg-gray-100">
+                            <td class="py-4 px-6">{{ event.name }}</td>
+                            <td class="py-4 px-6">{{ event.time }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="2" class="py-4 px-6 text-center font-bold text-red-600">
+                                ❌ No events scheduled for today
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
     </div> 
 
     {% include "share/footer.html" %}
+
 </body>
 </html>

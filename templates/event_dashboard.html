@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVPs</title>
+</head>
+<body>
+{% include "share/navbar.html" %}
+
+{% if messages %}
+{% for message in  messages%}
+<h2 class="text-2xl text-green-300 my-5 text-center">{{message}}</h2>
+{% endfor %}
+{% endif %}
+<div class="container mx-auto p-6 my-16">
+    <div class="overflow-x-auto">
+        <table class="w-full border border-gray-300 shadow-lg rounded-lg">
+            <thead>
+                <tr class="bg-blue-600 text-white">
+                    <th class="py-3 px-6 text-left">Event Name</th>
+                    <th class="py-3 px-6 text-left">Date</th>
+                    <th class="py-3 px-6 text-left">Location</th>
+                    <th class="py-3 px-6 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr class="border-b hover:bg-green-500 transition text-white">
+                        <td class="py-3 px-6">{{ event.name }}</td>
+                        <td class="py-3 px-6">{{ event.date }}</td>
+                        <td class="py-3 px-6">{{ event.location }}</td>
+                        <td class="py-3 px-6">
+                            <a href="{% url 'event_detail' event.id %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-4 px-6 text-center text-gray-500">No events found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include "share/footer.html" %}
+</body>
+</html>

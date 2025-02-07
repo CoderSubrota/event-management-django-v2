@@ -2,9 +2,10 @@ from django.shortcuts import render,get_object_or_404, redirect
 from events.forms import Add_Event,Create_Participant_Form,Add_Category
 from django.db.models import Count,Q
 from django.utils.timezone import now
-from .models import Add_Event_Model, Create_Participant_Model, Category_Model
+from .models import Add_Event_Model, Create_Participant_Model, Category_Model,RSVP_Model
 from django.contrib.auth.decorators import login_required, user_passes_test
-
+from django.core.mail import send_mail
+from django.contrib import messages
 # Create your views here.
 
 # ------------------
@@ -252,3 +253,33 @@ def category_delete(request, pk):
         category.delete()
         return redirect('category_list')
     return render(request, 'category_confirm_delete.html', {'category': category})
+
+@login_required
+def rsvp_event(request, event_id):
+    event = get_object_or_404(Add_Event_Model, id=event_id)
+    if RSVP_Model.objects.filter(user=request.user, event=event).exists():
+        messages.error(request, "You have already RSVP'd for this event.")
+        return redirect('event_rsvps_dashboard')
+    
+    RSVP_Model.objects.create(user=request.user, event=event)
+    send_mail(
+        "Event RSVP Confirmation",
+        f"You have successfully RSVP'd for {event.name}.",
+        "itsectorcommunication@gmail.com",
+        [request.user.email],
+        fail_silently=True,
+    )
+
+    messages.success(request, "RSVP confirmed. A confirmation email has been sent.")
+    return redirect('event_rsvps_dashboard')
+
+
+def my_rsvps(request):
+    events = Add_Event_Model.objects.filter(rsvp_model__user=request.user)  
+    return render(request, 'event_dashboard.html', {'events': events})
+
+
+def event_detail(request, event_id):
+    event = get_object_or_404(Add_Event_Model, id=event_id)
+    return render(request, 'event_detail.html', {'event': event})
+

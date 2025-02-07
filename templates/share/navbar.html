@@ -16,12 +16,18 @@
                 <li>
                     <a href="#" class="hover:text-emerald-500 transition duration-300">Contact</a>
                 </li>
+
                {% if user.is_authenticated %}
                <li>
                 <a href="{% url 'dashboard' %}" class="hover:text-emerald-500 transition duration-300">Dashboard</a>
-            </li>
+                </li>
                {% endif %}
 
+               {% if "Organizer" in request.user.groups.all|join:"," %}
+               <li>
+                <a href="{% url 'event_rsvps_dashboard' %}" class="hover:text-emerald-500 transition duration-300">Event RSVP</a>
+                </li>
+                {% endif %}
                 {% if not user.is_authenticated %}   
             <li>
                 <a href="{% url 'sign-up' %}" class="hover:text-emerald-500 transition duration-300">Sign Up</a>
@@ -47,12 +53,7 @@
 
 {% endif %}
 
-<li>
-    {% if "Participant" in request.user.groups.all|join:"," %}
-    <a href="{% url 'show_event_list' %}" class="btn">View Events</a>
-{% endif %}
 
-</li>
 {% if "Participant" in request.user.groups.all|join:"," %}
 <li>
     <form action="{% url "sign-out" %}" method="POST">
@@ -71,13 +72,12 @@
 </li>
 {% endif %}
 
-{% if "Organizer" in request.user.groups.all|join:"," %}
-                <!-- Dropdown for "Show More" -->
+  <!-- Dropdown for "Show More" -->
                 <li class="relative group">
                     <!-- Wrapping both the "Show More" text and dropdown menu -->
                     <div class="group-hover:block">
                         <p class="hover:cursor-pointer hover:text-emerald-500 transition duration-300">Show More</p>
-                        <ul class="absolute left-0  hidden group-hover:flex flex-col bg-gray-700 -mt-1 text-white shadow-lg rounded-lg p-3 w-52">
+                        <ul class="absolute left-0  hidden group-hover:flex flex-col bg-gray-700 -mt-1 -ml-12 text-white shadow-lg rounded-lg  w-38 p-3">
                             {% if "Organizer" in request.user.groups.all|join:"," %}
                             <li class="py-1">
                                 <a href="{% url 'participant_list' %}" class="block hover:text-emerald-500 transition duration-300">Participants</a>
@@ -102,10 +102,44 @@
                                 </form>
                              </li>
                             {% endif %} 
+
+                            {% if "Admin" in request.user.groups.all|join:"," %}
+                            
+                            <li class="my-2 hover:text-green-300">
+                                <a href="{% url 'create-group'%}">
+                                  Create Group 
+        
+                                    </a>
+                            </li>
+                            
+                           <li class="my-2 hover:text-green-300">
+                            <a href="{% url 'event_list'%}">
+                                 Events
+
+                                </a>
+                           </li>
+                            <li class="my-2 hover:text-green-300">
+                            <a href="{% url 'group-list'%}">
+                             Groups
+
+                        </a>
+                            </li>
+                          {% endif %}
+
+
+                          {% if "Participant" in request.user.groups.all|join:"," %}
+
+                          <li>
+                              <a href="{% url 'show_event_list' %}" class="btn">View Events</a>
+                          
+                          </li>
+                          {% endif %}
+                          
                         </ul>
                     </div>
                 </li>
-                {% endif %}
+              
+
             </ul>
         </div>
     </div>
