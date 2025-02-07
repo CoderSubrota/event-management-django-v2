@@ -18,7 +18,7 @@ SECRET_KEY = 'django-insecure-_r0ib69s^06^0+gf4=m%d!^^!(!+_zp=0&qi(258+nm-)_f!tc
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['127.0.0.1','event-management-qcfb.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1','event-management-django-v2.onrender.com']
 
 
 # Application definition
@@ -125,14 +125,14 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://event-management-qcfb.onrender.com",
+    "https://event-management-django-v2.onrender.com",
 ]
 
 
 INTERNAL_IPS = [
     # ...
     "127.0.0.1",
-    "event-management-qcfb.onrender.com"
+    "event-management-django-v2.onrender.com"
     # ...
 ]
  
@@ -173,7 +173,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # FRONTEND_URL = "http://127.0.0.1:8000/"
 
-FRONTEND_URL = "https://event-management-qcfb.onrender.com/" 
+FRONTEND_URL = "https://event-management-django-v2.onrender.com/" 
 
 
 MEDIA_URL = '/media/'
