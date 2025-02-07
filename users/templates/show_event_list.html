@@ -27,7 +27,9 @@
                 <td class="border px-4 py-2">{{ event.category.name }}</td>
                 <td class="border px-4 py-2">{{ event.date }}</td>
                 <td class="border px-4 py-2 text-center"> 
-                    <img src={{ event.image.url }} alt="event image" class="h-20 w-20 rounded-full ring-4 ring-green-300"/>
+
+                    <img src="{{ event.image.url|default:'https://i.pinimg.com/736x/ed/f0/1b/edf01be817dca367651fc74e43a3f2be.jpg' }}" alt="{{ event.name }}" class="h-20 w-20 rounded-full ring-4 ring-green-300">
+
                 </td>
             </tr>
             {% empty %}

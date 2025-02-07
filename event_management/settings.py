@@ -85,26 +85,26 @@ AUTHENTICATION_BACKENDS = [
 
 # postgres sql database 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'events_databases',   
-        'USER': 'postgres',
-        'PASSWORD': 'subrota12',
-        'HOST': 'localhost',  
-        'PORT': '5432',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'events_databases',   
+#         'USER': 'postgres',
+#         'PASSWORD': 'subrota12',
+#         'HOST': 'localhost',  
+#         'PORT': '5432',
+#     }
+# }
 
 # Replace the SQLite DATABASES configuration with PostgreSQL:
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         # Replace this value with your local database's connection string.
-#         default='postgresql://event_management_rl21_user:XnPaWuAtrRkdzhIwpIxJgdMPem05qSuF@dpg-cuar0k2n91rc738v11rg-a.oregon-postgres.render.com/event_management_rl21',
-#         conn_max_age=600
-#     )
-# }
+DATABASES = {
+    'default': dj_database_url.config(
+        # Replace this value with your local database's connection string.
+        default='postgresql://event_management_rl21_user:XnPaWuAtrRkdzhIwpIxJgdMPem05qSuF@dpg-cuar0k2n91rc738v11rg-a.oregon-postgres.render.com/event_management_rl21',
+        conn_max_age=600
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -171,7 +171,9 @@ EMAIL_HOST_USER = env('EMAIL')
 EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD') 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-FRONTEND_URL = "http://127.0.0.1:8000/"
+# FRONTEND_URL = "http://127.0.0.1:8000/"
+
+FRONTEND_URL = "https://event-management-qcfb.onrender.com/" 
 
 
 MEDIA_URL = '/media/'

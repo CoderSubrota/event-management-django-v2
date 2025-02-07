@@ -16,7 +16,7 @@ class Add_Event_Model(models.Model):
     date = models.DateField()
     time = models.TimeField()
     location = models.TextField()
-    image = models.ImageField(upload_to='event_images/', default='default_event.jpg')
+    image = models.ImageField(max_length=5200,upload_to='event_images/', default='https://i.pinimg.com/736x/ed/f0/1b/edf01be817dca367651fc74e43a3f2be.jpg')
    
     category = models.ForeignKey(
     Category_Model,  
