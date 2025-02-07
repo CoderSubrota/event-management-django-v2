@@ -46,7 +46,8 @@ def sign_up(request):
     return render(request, 'registration/sign-up.html', {'form': form})
 
 # add participant 
-
+@login_required(login_url="sign-in")
+@user_passes_test(is_admin or is_organizer, login_url='sign-in')
 def add_participant(request):
     if request.method == "POST":
         form = Add_Participant(request.POST)

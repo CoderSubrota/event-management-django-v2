@@ -63,6 +63,7 @@
 </li>
 {% endif %}
 
+
 {% if "Admin" in request.user.groups.all|join:"," %}
 <li>
     <form action="{% url "sign-out" %}" method="POST">
@@ -112,12 +113,6 @@
                                     </a>
                             </li>
                             
-                           <li class="my-2 hover:text-green-300">
-                            <a href="{% url 'event_list'%}">
-                                 Events
-
-                                </a>
-                           </li>
                             <li class="my-2 hover:text-green-300">
                             <a href="{% url 'group-list'%}">
                              Groups
@@ -133,6 +128,7 @@
                               <a href="{% url 'show_event_list' %}" class="btn">View Events</a>
                           
                           </li>
+                       
                           {% endif %}
                           
                         </ul>

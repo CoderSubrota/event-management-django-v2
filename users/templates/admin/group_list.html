@@ -8,31 +8,7 @@
 </head>
 <body>
     {% include "share/navbar.html" %}
-    <div class="flex sm:flex-col-reverse md:flex-col lg:flex-row my-3">
-        <a href="{% url 'admin_dashboard' %}">
-          <button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
-             Dashboard
-          </button>
-        </a>
-      
-      <a href="{% url 'create-group'%}">
-      <button class="text-white px-3  mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
-          Create Group 
-      </button>
-      </a>
-      
-      <a href="{% url 'event_list'%}">
-      <button class="text-white  px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
-          Events
-      </button>
-      </a>
-      
-      <a href="{% url 'group-list'%}">
-      <button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
-        Groups
-      </button>
-      </a>
-       </div>
+ 
     <table class="table-auto w-full my-16 border-collapse border border-gray-200 shadow-lg rounded-lg text-left">
         <thead class="bg-blue-500 text-white">
             <tr>
