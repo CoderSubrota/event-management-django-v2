@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+</head>
+<body>
+    {% include "share/navbar.html" %}
+
+    <div class="container mx-auto my-16 w-6/12">
+        <form method="post"  class="text-green-500 text-2xl font-bold">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="p-3 rounded-xl w-full bg-blue-700 font-bold text-white text-center my-4">
+                Save Event
+            </button>
+        </form>
+    </div>
+
+    {% include "share/footer.html" %}
+</body>
+</html>

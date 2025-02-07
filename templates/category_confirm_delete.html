@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category delete confirm</title>
+</head>
+<body>
+  <!-- templates/category_confirm_delete.html -->
+{% include "share/navbar.html" %} 
+
+{% block content %}
+<div class="container mx-auto  my-36 text-center">
+    <h1 class="text-3xl font-bold text-red-600">Delete Category</h1>
+    <p class="text-lg my-4 text-white">
+        Are you sure you want to delete the category <strong>{{ category.name }}</strong>?
+    </p>
+    <p class="text-white text-sm">
+        This action cannot be undone, and any associated events will also be deleted.
+    </p>
+
+    <form method="post" class="mt-8">
+        {% csrf_token %}
+        <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-md mr-4">
+            Yes, Delete
+        </button>
+        <a href="{% url 'category_list' %}" class="bg-gray-500 text-white px-6 py-2 rounded-md">
+            Cancel
+        </a>
+    </form>
+</div>
+{% endblock %}
+ 
+{% include "share/footer.html" %}
+</body>
+</html>

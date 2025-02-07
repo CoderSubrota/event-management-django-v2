@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+</head>
+<body>
+    {% include "share/navbar.html" %}
+
+    {% if message %}
+        <p class="text-center my-4 text-3xl bg-green-400 py-2 rounded-lg font-medium text-white w-96 m-auto">
+            {{ message }}
+        </p>
+    {% endif %}
+
+    <div class="container mx-auto my-16 w-6/12">
+        <form method="post" action="{% url 'add_event' %}" class="text-green-500 text-2xl font-bold" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="p-3 rounded-xl w-full bg-blue-700 font-bold text-white text-center my-4">
+                Save Event
+            </button>
+        </form>
+    </div>
+
+    {% include "share/footer.html" %}
+</body>
+</html>

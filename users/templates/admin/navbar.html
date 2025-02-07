@@ -1,0 +1,94 @@
+<nav class="bg-gray-800 text-white">
+    <div class="flex  sm:flex-col md:flex-col-reverse lg:flex-row lg:justify-between items-center py-5 px-4 container mx-auto">
+        <!-- Logo Section -->
+        <div class="flex items-center">
+            {% load static %}
+            <img src="{% static 'images/logo.jpg' %}" alt="logo" class="h-12 w-12 rounded-full">
+            <span class="ml-3 text-xl font-bold">Event Manager</span>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="mt-5 lg:mt-0">
+            <ul class="flex sm:flex-col md:flex-col-reverse lg:flex-row list-none  gap-4 lg:gap-8">
+                <li>
+                    <a href="{% url 'home' %}" class="hover:text-emerald-500 transition duration-300">Home</a>
+                </li>
+                <li>
+                    <a href="#" class="hover:text-emerald-500 transition duration-300">Contact</a>
+                </li>
+                <li>
+                    <a href="{% url 'dashboard' %}" class="hover:text-emerald-500 transition duration-300">Dashboard</a>
+                </li>
+                <li>
+                    <a href="{% url 'add_event' %}" class="hover:text-emerald-500 transition duration-300">Add Event</a>
+                </li>
+                <li>
+                    <a href="{% url 'add_participant' %}" class="hover:text-emerald-500 transition duration-300">Add Participant</a>
+                </li>
+        
+                {% if user.is_authenticated %}
+                <li>
+                    <a href="{% url 'sign-up' %}" class="hover:text-emerald-500 transition duration-300">Sign Up</a>
+                </li>
+                <li>
+                    <a href="{% url 'sign-in' %}" class="hover:text-emerald-500 transition duration-300">Sign In</a>
+                </li>
+                
+            {% else %}
+            <li>
+                <a href="{% url 'create_category' %}" class="hover:text-emerald-500 transition duration-300">Add Category</a>
+            </li>
+             {% endif %}
+
+           {% comment %} <li>
+     {% if "Admin" in request.user.groups.all|join:"," %}
+    <a href="{% url 'admin_dashboard' %}" class="btn">Manage Users</a>
+       {% endif %}
+    </li> {% endcomment %}
+
+         <li>
+     {% if "Admin" in request.user.groups.all|join:"," %}
+    <a href="{% url 'admin_dashboard' %}" class="btn">Manage Users</a>
+       {% endif %}
+    </li>
+
+<li>
+{% if "Organizer" in request.user.groups.all|join:"," %}
+    <a href="{% url 'add_event' %}" class="btn">Create Event</a>
+{% endif %}
+</li>
+<li>
+<a href="{% url 'event_list' %}" class="btn">View Events</a>
+</li>
+
+                <!-- Dropdown for "Show More" -->
+                <li class="relative group">
+                    <!-- Wrapping both the "Show More" text and dropdown menu -->
+                    <div class="group-hover:block">
+                        <p class="hover:cursor-pointer hover:text-emerald-500 transition duration-300">Show More</p>
+                        <ul class="absolute left-0  hidden group-hover:flex flex-col bg-gray-700 -mt-1 text-white shadow-lg rounded-lg p-3">
+                            <li class="py-1">
+                                <a href="{% url 'event_list' %}" class="block hover:text-emerald-500 transition duration-300">Events</a>
+                            </li>
+                        
+                            <li class="py-1">
+                                <a href="{% url 'participant_list' %}" class="block hover:text-emerald-500 transition duration-300">Participants</a>
+                            </li>
+                            <li class="py-1">
+                                <a href="{% url 'category_list' %}" class="block hover:text-emerald-500 transition duration-300">Categories</a>
+                            </li>
+                            {% comment %} {% if user.is_authenticated  %}  {% endcomment %}
+                            <li class="py-1">
+                               <form action="{% url "sign-out" %}" method="POST">
+                                {% csrf_token %}
+                                <button class="bg-red-500 px-3 py-2 text-center  rounded-3xl  text-white hover:cursor-pointer">Log Out</button>
+                               </form>
+                            </li>
+                            {% comment %} {% endif %}  {% endcomment %}
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create participant</title>
+</head>
+<body>
+    {% include "share/navbar.html" %}
+     
+     {% if message %}
+      <h2 class="text-3xl font-black text-green-300 text-center my-4"> {{message}} </h2>
+     {% endif %}
+
+     <form  method="post" action="{% url 'add_participant' %}" class="mx-auto my-16 w-6/12 text-green-500 text-2xl font-bold shadow-2xl shadow-blue-300  rounded-lg p-5">
+        {% csrf_token %}
+        <label for="Name" class="text-white"> Name </label>
+
+        {{form.name}}
+        <label for="Email" class="text-white"> Email </label>
+
+        {{form.email}}
+        <label for="Event assign" class="text-white"> Event assign </label>
+        <div class="h-56 overflow-auto">
+            
+            {{form.event_assign}}
+        </div>
+          <button type="submit" class="my-3 text-white rounded-3xl p-3 bg-green-400 w-full hover:cursor-pointer">Save Participant</button>
+     </form>
+    {% include "share/footer.html" %}
+</body>
+</html>

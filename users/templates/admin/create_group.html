@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Group</title>
+</head>
+<body>
+{% include "share/navbar.html" %}
+<div class="flex sm:flex-col-reverse md:flex-col lg:flex-row my-3">
+    <a href="{% url 'admin_dashboard' %}">
+      <button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+         Dashboard
+      </button>
+    </a>
+  
+  <a href="{% url 'create-group'%}">
+  <button class="text-white px-3  mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+      Create Group 
+  </button>
+  </a>
+  
+  <a href="{% url 'event_list'%}">
+  <button class="text-white  px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+      Events
+  </button>
+  </a>
+  
+  <a href="{% url 'group-list'%}">
+  <button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+    Groups
+  </button>
+  </a>
+   </div>
+   
+{% if messages %}
+{% for message in messages %}
+<p class="text-2xl text-center text-green-300 my-5">{{message}}</p>
+{% endfor %}
+{% endif %}
+
+<form method="post" class="max-w-md mx-auto my-16 bg-white p-6 rounded-lg shadow-md border border-gray-200">
+    {% csrf_token %}
+
+    <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-1">{{ form.name.label }}</label>
+        {{ form.name }}
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-2">Assign Permissions</label>
+        <div class="h-60 overflow-y-auto bg-gray-100 p-3 rounded-lg">
+            {% for permission in form.permission %}
+                <label class="flex items-center space-x-2">
+                    {{ permission.tag }}  <!-- Renders the checkbox -->
+                    <span class="text-gray-700">{{ permission.choice_label }}</span>
+                </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition shadow-md">
+        Create Group
+    </button>
+</form>
+
+
+    
+    {% include "share/footer.html" %}
+</body>
+</html>

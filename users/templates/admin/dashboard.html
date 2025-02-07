@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Manage users </title>
+</head>
+<body>
+    {% include "share/navbar.html" %}
+
+    {% if messages %}
+    {% for message in messages %}
+    <p class="text-2xl text-center text-green-400 my-5">{{message}}</p>
+    {% endfor %}
+    {% endif %}
+
+ <div class="flex sm:flex-col-reverse md:flex-col lg:flex-row my-3">
+  <a href="{% url 'admin_dashboard' %}">
+    <button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+       Dashboard
+    </button>
+  </a>
+
+<a href="{% url 'create-group'%}">
+<button class="text-white px-3  mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+    Create Group 
+</button>
+</a>
+
+<a href="{% url 'event_list'%}">
+<button class="text-white  px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+    Events
+</button>
+</a>
+
+<a href="{% url 'group-list'%}">
+<button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+  Groups
+</button>
+</a>
+ </div>
+ 
+    {% include "admin/user_list.html" %} 
+
+    {% include "share/footer.html" %}
+</body>
+</html>

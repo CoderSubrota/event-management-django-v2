@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage users</title>
+</head>
+<body>
+    {% include "share/navbar.html" %}
+    <div class="flex sm:flex-col-reverse md:flex-col lg:flex-row my-3">
+        <a href="{% url 'admin_dashboard' %}">
+          <button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+             Dashboard
+          </button>
+        </a>
+      
+      <a href="{% url 'create-group'%}">
+      <button class="text-white px-3  mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+          Create Group 
+      </button>
+      </a>
+      
+      <a href="{% url 'event_list'%}">
+      <button class="text-white  px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+          Events
+      </button>
+      </a>
+      
+      <a href="{% url 'group-list'%}">
+      <button class="text-white px-3 mx-3 bg-blue-400 rounded-full my-3 p-2 hover:cursor-pointer">
+        Groups
+      </button>
+      </a>
+       </div>
+    <table class="table-auto w-full my-16 border-collapse border border-gray-200 shadow-lg rounded-lg text-left">
+        <thead class="bg-blue-500 text-white">
+            <tr>
+                <th class="px-6 py-3 border border-gray-300 text-left">Group Name</th>
+                <th class="px-6 py-3 border border-gray-300 text-left">Permission</th>
+            </tr>
+        </thead>
+
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for group in groups %}
+                <tr class="hover:bg-blue-100 transition">
+                    <td class="px-6 py-4 border border-gray-300">{{ group.name }}</td>
+                    <td class="px-6 py-4 border border-gray-300">
+                        <ul class="list-disc list-inside">
+                            {% for permission in group.permissions.all %}
+                                <li>
+                                    {{ permission.name }}
+                                </li>
+                            {% empty %}
+                                <li>No permissions found</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "share/footer.html" %}
+</body>
+</html>

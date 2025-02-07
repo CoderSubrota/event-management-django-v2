@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Optimized Event List</title>
+    {% include "cdn/cdn.html" %}
+</head>
+<body>
+    {% include "share/navbar.html" %}
+ 
+    <div class="text-center text-green-300 mt-5 text-2xl">
+        {% if user.is_authenticated %}
+        <p>Welcome {{user.first_name}}</p>
+        {% endif %}
+    </div>
+    {% comment %} Subta1234##  {% endcomment %}
+    <div class="  text-white font-bold my-3">
+        <form method="get" class="ml-22 lg:ml-96 my-12" action="{% url 'home' %}">
+            <input type="text" name="search" placeholder="Search events by name or location" value="{{ query }}" class="ring-2 ring-blue-700 border px-2 py-1 w-2xl ps-2.5 rounded-2xl">
+            <button type="submit" class="bg-blue-500 my-10 text-white px-4 py-1 rounded-2xl mx-2.5">Search</button>
+        </form> 
+        
+        <div class="container my-14 mx-auto grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {% if search_events %}
+                {% for event_item in search_events %}
+                    <div class="bg-gradient-to-r py-12 my-4 from-green-400 to-blue-500 rounded-xl shadow-xl p-2 flex flex-col items-center hover:shadow-blue-600 duration-300 ">
+                        <h3 class="text-white text-lg font-bold mb-2 text-center">Event: {{ event_item.name }}</h3>
+                        <p class="text-white text-sm mb-2"><strong>Location:</strong> {{ event_item.location }}</p>
+                        <p class="text-white text-sm"><strong>Date:</strong> {{ event_item.date }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-center text-gray-500 text-lg font-medium">No events found.</p>
+            {% endif %}
+        </div>
+        
+    
+
+    </div>
+    
+    <h2 class="text-green-400 text-2xl text-center my-9 font-bold"> You can get your events here  </h2>
+
+    {% load static %}
+    
+    <div class="flex justify-center">
+        <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <img src="{% static "images/event.jpeg" %}" alt="event"  class="w-96 h-96  rounded-4xl mx-3.5"/>
+            <img src="{% static "images/event2.jpeg" %}" alt="event"  class="w-96 h-96  rounded-4xl mx-3.5"/>
+            <img src="{% static "images/event3.jpeg" %}" alt="event"  class="w-96 h-96  rounded-4xl mx-3.5"/>
+            </div>
+    </div>
+
+    
+    <div class="container mx-auto my-16 text-white font-bold">
+        <h1 class="text-center text-3xl font-bold text-blue-500 mb-6">Optimized Event List</h1>
+
+        <p class="text-center text-2xl font-bold ">Total Participants: <span class="text-green-400">{{ total_participants }}</span> </p>
+
+        <form method="get" class="flex  sm:flex-col md:flex-col lg:flex-row my-8 mx-auto lg:ml-45 items-center align-middle justify-around">
+            <label for="category">Filter by Category:</label>
+            <input type="text" id="category" name="category" placeholder="Enter category"  class="ring-2 ring-blue-600 rounded-2xl mx-2 my-4 ps-3">
+            
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ request.GET.start_date }}" class="ring-2 ring-blue-600 rounded-2xl my-4 mx-2  ps-3">
+            
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ request.GET.end_date }}" class="ring-2 ring-blue-600 rounded-2xl mx-2 my-4  ps-3">
+            
+            <button type="submit" class="p-2 bg-blue-500 my-4 text-white rounded">Filter</button>
+        </form>
+
+        <table class="table-auto w-full  border-collapse border border-gray-200">
+            <thead class="text-blue-400">
+                <tr class="bg-gray-100">
+                    <th class="border border-gray-300 px-4 py-2">Event Name</th>
+                    <th class="border border-gray-300 px-4 py-2">Description</th>
+                    <th class="border border-gray-300 px-4 py-2">Date</th>
+                    <th class="border border-gray-300 px-4 py-2">Time</th>
+                    <th class="border border-gray-300 px-4 py-2">Location</th>
+                    <th class="border border-gray-300 px-4 py-2">Category</th>
+                    <th class="border border-gray-300 px-4 py-2">Participants</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">{{ event.name }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ event.description }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ event.date }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ event.time }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ event.location }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ event.category.name }}</td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            <ul class="ms-3">
+                                {% for participant in event.events.all %}
+                                 <li class="list-disc">
+                                    {{ participant.name }}
+                                 </li>
+                            {% empty %}
+                                No participants
+                            {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">No events available</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "share/footer.html" %}
+</body>
+</html>
+
