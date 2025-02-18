@@ -1,172 +1,208 @@
-from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
-from django.contrib.auth import authenticate, logout,login
-from users.forms import SignUpForm, AssignRoleForm, CreateGroupForm,Add_Participant
-from django.core.mail import send_mail
-from django.conf import settings
+from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth.models import Group
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth import login, logout
+from users.forms import CustomRegistrationForm, AssignRoleForm, CreateGroupForm, CustomPasswordChangeForm, CustomPasswordResetForm, CustomPasswordResetConfirmForm, EditProfileForm
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.contrib import messages
+from users.forms import LoginForm
 from django.contrib.auth.tokens import default_token_generator
-from events.models import Add_Event_Model
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Prefetch
+from django.contrib.auth.views import  LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView
+from django.views.generic import TemplateView, UpdateView
+from django.urls import reverse_lazy
+from django.contrib.auth import get_user_model
+from users.models import CustomUser
+from django.views.generic import CreateView
+from django.http import HttpResponseRedirect
 
-# ------------------
-def is_organizer(user):
-    return user.groups.filter(name='Organizer').exists()
+CustomUser = get_user_model()
+
+class EditProfileView(UpdateView):
+    model = CustomUser
+    form_class = EditProfileForm
+    template_name = 'accounts/update_profile.html'
+    context_object_name = 'form'
+
+    def get_object(self):
+        return self.request.user
+
+    def form_valid(self, form):
+        form.save()
+        return redirect('profile')
+
 
 def is_admin(user):
-    if user.is_authenticated:
-        return user.groups.filter(name='Admin').exists()
-    else:
-        print(f"User {user} is not authenticated")
-        return False
-
-def is_participant(user):
-    return user.groups.filter(name='Participant').exists()
-# ---------------------- 
-def sign_up(request):
-    if request.method == "POST":
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password1'])
-            user.is_active = False 
-            user.save()
-            messages.success(request, "A confirmation mail has been sent. Please check your email.")
-            return redirect("sign-in") 
-        else:
-            
-            return render(request, 'registration/sign-up.html', {
-                'form': form, 
-                'message': 'Please follow the instructions and fix the errors in the form.'
-            })
-    else:
-        form = SignUpForm()
-
-    return render(request, 'registration/sign-up.html', {'form': form})
-
-# add participant 
-@login_required(login_url="sign-in")
-@user_passes_test(is_admin or is_organizer, login_url='sign-in')
-def add_participant(request):
-    if request.method == "POST":
-        form = Add_Participant(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password1'])
-            user.is_active = False 
-            user.save()
-            messages.success(request, "A confirmation mail has been sent. Please check your email.")
-            return redirect("sign-in") 
-        else:
-            
-            return render(request, 'registration/add_participant.html', {
-                'form': form, 
-                'message': 'Please follow the instructions and fix the errors in the form.'
-            })
-    else:
-        form = Add_Participant()
-
-    return render(request, 'registration/add_participant.html', {'form': form})
+    return user.groups.filter(name='Admin').exists()
 
 
-def sign_in(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request,user) 
-            return redirect("home")
-        else:
-            return render(request, 'registration/sign-in.html', {'message': 'Invalid credential'})
-    return render(request, 'registration/sign-in.html')
+
+class SignUpView(CreateView):
+    form_class = CustomRegistrationForm
+    template_name = 'registration/register.html'
+    success_url = reverse_lazy('sign-in')
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.set_password(form.cleaned_data.get('password1'))
+        user.is_active = False
+
+        # Check if there is a file uploaded and assign it
+        if self.request.FILES:
+            user.profile_image = self.request.FILES.get('profile_image')
+
+        # Save the user
+        user.save()
+
+        # Send a success message to the user
+        messages.success(self.request, 'A confirmation mail has been sent. Please check your email.')
+
+        # Use HttpResponseRedirect with the success URL
+        return HttpResponseRedirect(self.get_success_url())  # Correctly call get_success_url()
+
+    def get_success_url(self):
+        """Override to provide the success URL dynamically."""
+        return self.success_url
+    
+    
+class CustomLoginView(LoginView):
+    form_class = LoginForm
+
+    def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        return next_url if next_url else super().get_success_url()
+    
+    
+class ChangePassword(PasswordChangeView):
+    template_name = 'accounts/password_change.html'
+    form_class = CustomPasswordChangeForm
 
 
-@login_required(login_url="sign-in")
+@login_required
 def sign_out(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         logout(request)
-        return redirect("sign-in")
+        return redirect('sign-in')
 
-def activate_account(request, user_id, token):
+
+def activate_user(request, user_id, token):
     try:
-        user = User.objects.get(id=user_id)
+        user = CustomUser.objects.get(id=user_id)
         if default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            return redirect("sign-in")
+            return redirect('sign-in')
         else:
-            return HttpResponse("<p style='color:red;'>Invalid token</p>")
-    except User.DoesNotExist:
-        return HttpResponse("<p style='color:red;'>User not found</p>")
+            return HttpResponse('Invalid Id or token')
 
-@login_required(login_url="sign-in")
-@user_passes_test(is_admin, login_url='sign-in')
-def assign_role(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    form = AssignRoleForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        role_name = form.cleaned_data.get("role")
-        group = get_object_or_404(Group, name=role_name)
-        user.groups.clear()
-        user.groups.add(group)
-        messages.success(request, f"User {user.username} has been assigned to the {group.name} role.")
-        return redirect("admin_dashboard")
-    return render(request, "admin/assign_role.html", {"form": form, "user": user})
+    except CustomUser.DoesNotExist:
+        return HttpResponse('User not found')
 
-@login_required(login_url="sign-in") 
-@user_passes_test(is_admin, login_url="sign-in")
+
+@user_passes_test(is_admin, login_url='no-permission')
 def admin_dashboard(request):
-    users = User.objects.all()
-    return render(request, "admin/dashboard.html", {'users': users})
+    users = CustomUser.objects.prefetch_related(
+        Prefetch('groups', queryset=Group.objects.all(), to_attr='all_groups')
+    ).all()
+
+    # print(users)
+
+    for user in users:
+        if user.all_groups:
+            user.group_name = user.all_groups[0].name
+        else:
+            user.group_name = 'No Group Assigned'
+    return render(request, 'admin/dashboard.html', {"users": users})
 
 
-@login_required(login_url="sign-in")
-@user_passes_test(is_admin, login_url='sign-in') 
+@user_passes_test(is_admin, login_url='no-permission')
+def assign_role(request, user_id):
+    user = CustomUser.objects.get(id=user_id)
+    form = AssignRoleForm()
+
+    if request.method == 'POST':
+        form = AssignRoleForm(request.POST)
+        if form.is_valid():
+            role = form.cleaned_data.get('role')
+            user.groups.clear()  # Remove old roles
+            user.groups.add(role)
+            messages.success(request, f"User {
+                             user.username} has been assigned to the {role.name} role")
+            return redirect('admin_dashboard')
+
+    return render(request, 'admin/assign_role.html', {"form": form})
+
+
+@user_passes_test(is_admin, login_url='no-permission')
 def create_group(request):
     form = CreateGroupForm()
-    if request.method == "POST":
+    if request.method == 'POST':
         form = CreateGroupForm(request.POST)
+
         if form.is_valid():
             group = form.save()
-            messages.success(request, f"Group {group.name} has been created successfully")
-            return redirect("create-group")
-    return render(request, "admin/create_group.html", {"form": form})
+            messages.success(request, f"Group {
+                             group.name} has been created successfully")
+            return redirect('create-group')
+
+    return render(request, 'admin/create_group.html', {'form': form})
 
 
-@login_required(login_url="sign-in")
-@user_passes_test(is_admin, login_url='sign-in') 
+@user_passes_test(is_admin, login_url='no-permission')
 def group_list(request):
-    groups = Group.objects.all()
-    return render(request, "admin/group_list.html", {'groups': groups})
+    groups = Group.objects.prefetch_related('permissions').all()
+    return render(request, 'admin/group_list.html', {'groups': groups})
 
-@login_required
-@user_passes_test(lambda u: is_admin(u) or is_organizer(u) or is_participant(u), login_url='sign-in')
-def view_events(request):
-    return render(request, "events/event_list.html")
 
-@login_required
-@user_passes_test(is_admin, login_url='sign-in')
-def send_email(request):
-    subject = "Welcome to My Website"
-    message = "Thank you for signing up!"
-    recipient_list = ["kepoy83095@andinews.com"]
-    send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list, fail_silently=False)
-    return render(request, "email_sent.html", {"message": "Email sent successfully!"})
+class ProfileView(TemplateView):
+    template_name = 'accounts/profile.html'
 
-@login_required
-@user_passes_test(is_admin, login_url='sign-in')
-def manage_users(request):
-    return render(request, "admin/dashboard.html")
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
 
-@login_required
-@user_passes_test(is_organizer, login_url='sign-in')
-def create_event(request):
-    return render(request, "events/add_event.html")
+        context['username'] = user.username
+        context['email'] = user.email
+        context['name'] = user.get_full_name()
+        context['phone_number'] = user.phone_number
+        context['profile_image'] = user.profile_image
 
-@login_required
-@user_passes_test(is_participant or is_admin or is_organizer, login_url='sign-in')
-def show_event_list(request):
-    events = Add_Event_Model.objects.all()
-    return render(request,'show_event_list.html',{'events':events})
+        context['member_since'] = user.date_joined
+        context['last_login'] = user.last_login
+        return context
+
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = 'registration/reset_password.html'
+    success_url = reverse_lazy('sign-in')
+    html_email_template_name = 'registration/reset_email.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['protocol'] = 'https' if self.request.is_secure() else 'http'
+        context['domain'] = self.request.get_host()
+        print(context)
+        return context
+
+    def form_valid(self, form):
+        messages.success(
+            self.request, 'A Reset email sent. Please check your email')
+        return super().form_valid(form)
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    form_class = CustomPasswordResetConfirmForm
+    template_name = 'registration/reset_password.html'
+    success_url = reverse_lazy('sign-in')
+
+    def form_valid(self, form):
+        messages.success(
+            self.request, 'Password reset successfully')
+        return super().form_valid(form)
+    
+def no_permission(request):
+  return render(request,"no-permission.html")
+
+def show_event(request):
+    return render(request,"show_event_list.html")

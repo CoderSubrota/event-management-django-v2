@@ -54,30 +54,23 @@
 {% endif %}
 
 
-{% if "Participant" in request.user.groups.all|join:"," %}
-<li>
+   {% if user.is_authenticated %}
+   <li>
     <form action="{% url "sign-out" %}" method="POST">
         {% csrf_token %}
         <button class="bg-red-500 px-3 py-2 text-center -mt-3 rounded-3xl  text-white hover:cursor-pointer">Log Out</button>
        </form>
 </li>
-{% endif %}
 
-
-{% if "Admin" in request.user.groups.all|join:"," %}
-<li>
-    <form action="{% url "sign-out" %}" method="POST">
-        {% csrf_token %}
-        <button class="bg-red-500 px-3 py-2 -mt-3 text-center  rounded-3xl  text-white hover:cursor-pointer">Log Out</button>
-       </form>
-</li>
-{% endif %}
+   {% endif %}
 
   <!-- Dropdown for "Show More" -->
                 <li class="relative group">
                     <!-- Wrapping both the "Show More" text and dropdown menu -->
                     <div class="group-hover:block">
+                        {% if user.is_authenticated %}
                         <p class="hover:cursor-pointer hover:text-emerald-500 transition duration-300">Show More</p>
+                        {% endif %}
                         <ul class="absolute left-0  hidden group-hover:flex flex-col bg-gray-700 -mt-1 -ml-12 text-white shadow-lg rounded-lg  w-38 p-3">
                             {% if "Organizer" in request.user.groups.all|join:"," %}
                             <li class="py-1">
@@ -91,17 +84,11 @@
                                 <a href="{% url 'add_event' %}" class="hover:text-emerald-500 transition duration-300">Add Event</a>
                             </li>
                             <li>
-                                <a href="{% url 'add-participant' %}" class="hover:text-emerald-500 transition duration-300">Add Participant</a>
+                                <a href="{% url 'add_participant' %}" class="hover:text-emerald-500 transition duration-300">Add Participant</a>
                             </li>
                               <li>
                                 <a href="{% url 'create_category' %}" class="hover:text-emerald-500 transition duration-300">Add Category</a>
                             </li>
-                            <li class="py-1">
-                                <form action="{% url "sign-out" %}" method="POST">
-                                 {% csrf_token %}
-                                 <button class="bg-red-500 px-3 py-2 text-center  rounded-3xl  text-white hover:cursor-pointer">Log Out</button>
-                                </form>
-                             </li>
                             {% endif %} 
 
                             {% if "Admin" in request.user.groups.all|join:"," %}
@@ -131,6 +118,11 @@
                        
                           {% endif %}
                           
+                          {% if user.is_authenticated %}
+                            <li>
+                                <a href="{% url 'profile' %}" class="btn">Profile</a>
+                            </li>
+                          {% endif %}
                         </ul>
                     </div>
                 </li>

@@ -3,10 +3,12 @@ from events.forms import Add_Event,Create_Participant_Form,Add_Category
 from django.db.models import Count,Q
 from django.utils.timezone import now
 from .models import Add_Event_Model, Create_Participant_Model, Category_Model,RSVP_Model
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.mail import send_mail
 from django.contrib import messages
-# Create your views here.
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic.edit import FormView,UpdateView,DeleteView,CreateView
+from django.urls import reverse_lazy
+from django.views.generic import ListView,TemplateView,DetailView,View
 
 # ------------------
 def is_organizer(user):
@@ -23,263 +25,279 @@ def is_participant(user):
     return user.groups.filter(name='Participant').exists()
 # ---------------------- 
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def add_event_form(request):
-    show_form = Add_Event()
-    if request.method == "POST":
-        form = Add_Event(request.POST,request.FILES)
-        if form.is_valid():
-            form.save()
-            return render(request, "add_event.html", {
-                "form": show_form,
-                "message": "Event added successfully!"
-            })
+class AddEventView(LoginRequiredMixin, UserPassesTestMixin, FormView):
+    template_name = "add_event.html"
+    form_class = Add_Event
+    success_url = reverse_lazy('add_event')
 
-    return render(request, "add_event.html", {"form": show_form})
+    def test_func(self):
+        return is_organizer or is_admin
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def  create_participant_view(request):
-     form_view =  Create_Participant_Form()
-     
-     if request.method == "POST":
-        form = Create_Participant_Form(request.POST)
-        if form.is_valid() :
-           form.save()
+    def form_valid(self, form):
+        form.save()
+        return self.render_to_response(self.get_context_data(form=form, message="Event added successfully!"))
 
-        context = {
-            'form':form_view ,
-            'message':'Participant added successfully !!',
-        }
-        return render(request, 'create_participant.html', context)
-
-     return render(request, 'create_participant.html', {'form':form_view})
- 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def create_category(request):
-     form_view =  Add_Category()
-     
-     if request.method == "POST":
-        form = Add_Category(request.POST)
-        if form.is_valid() :
-           form.save()
-
-        context = {
-            'form':form_view ,
-            'message':'Category added successfully !!'
-        }
-        return render(request, 'create_category.html', context)
-
-     return render(request, 'create_category.html', {'form':form_view})
- 
-# filter events data 
-def optimized_event_list(request):
-    # Fetch events with their categories and participants
-    events = Add_Event_Model.objects.select_related('category').prefetch_related('events')
-
-    # Apply filtering based on category and date range
-    category = request.GET.get('category')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-
-    if category:
-        events = events.filter(category__name=category)  
-    if start_date and end_date:
-        events = events.filter(date__range=[start_date, end_date]) 
-
-    # Aggregate query to count the total number of participants across all events
-    total_participants = events.annotate(participant_count=Count('events')).aggregate(
-        total=Count('events')
-    )['total']
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.get_form()
+        return context
     
-    categories = Category_Model.objects.all()
+class CreateParticipantView(LoginRequiredMixin, UserPassesTestMixin, FormView):
+    template_name = 'create_participant.html'
+    form_class = Create_Participant_Form
+    success_url = reverse_lazy('create_participant')  # Adjust the URL name as needed
+
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def form_valid(self, form):
+        form.save()
+        return self.render_to_response(self.get_context_data(form=form, message='Participant added successfully!'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.get_form()
+        return context
     
-    query = request.GET.get('search', '')  
-    search_events = Add_Event_Model.objects.all()
+class CreateCategoryView(LoginRequiredMixin, UserPassesTestMixin, FormView):
+    template_name = 'create_category.html'
+    form_class = Add_Category
+    success_url = reverse_lazy('create_category')  # Adjust the URL name as needed
 
-    if query:
-        search_events = search_events.filter(Q(name__icontains=query) | Q(location__icontains=query))
+    def test_func(self):
+        return is_organizer or is_admin
 
+    def form_valid(self, form):
+        form.save()
+        return self.render_to_response(self.get_context_data(form=form, message='Category added successfully!'))
 
-    return render(request, 'home.html', {
-        'events': events,
-        'search_events':search_events,
-        'total_participants': total_participants if total_participants else 0,
-        'categories':categories,
-    })
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.get_form()
+        return context
+    
+class OptimizedEventListView(ListView):
+    model = Add_Event_Model
+    template_name = 'home.html'
+    context_object_name = 'events'
 
-@login_required
-# @user_passes_test(is_organizer or is_admin or is_participant,login_url="sign-in")
-def organizer_dashboard(request):
-    total_participants = Create_Participant_Model.objects.count()
-    total_events = Add_Event_Model.objects.count()
-    upcoming_events = Add_Event_Model.objects.filter(date__gte=now().date()).count()
-    past_events = Add_Event_Model.objects.filter(date__lt=now().date()).count()
-    todays_events = Add_Event_Model.objects.filter(date=now().date())
+    def get_queryset(self):
+        events = Add_Event_Model.objects.select_related('category').prefetch_related('events')
+        category = self.request.GET.get('category')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
 
-    return render(request, 'dashboard.html', {
-        'total_participants': total_participants,
-        'total_events': total_events,
-        'upcoming_events': upcoming_events,
-        'past_events': past_events,
-        'todays_events': todays_events,
-    })
+        if category:
+            events = events.filter(category__name=category)
+        if start_date and end_date:
+            events = events.filter(date__range=[start_date, end_date])
 
+        total_participants = events.annotate(participant_count=Count('events')).aggregate(
+            total=Count('events')
+        )['total']
+
+        self.total_participants = total_participants if total_participants else 0
+
+        return events
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_participants'] = self.total_participants
+        context['categories'] = Category_Model.objects.all()
+
+        # Handle search functionality
+        query = self.request.GET.get('search', '')
+        if query:
+            context['search_events'] = Add_Event_Model.objects.filter(
+                Q(name__icontains=query) | Q(location__icontains=query)
+            )
+        else:
+            context['search_events'] = Add_Event_Model.objects.none() 
+
+        return context
+    
+
+class OrganizerDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Calculate dashboard statistics
+        context['total_participants'] = Create_Participant_Model.objects.count()
+        context['total_events'] = Add_Event_Model.objects.count()
+        context['upcoming_events'] = Add_Event_Model.objects.filter(date__gte=now().date()).count()
+        context['past_events'] = Add_Event_Model.objects.filter(date__lt=now().date()).count()
+        context['todays_events'] = Add_Event_Model.objects.filter(date=now().date())
+
+        return context
 
 
 # -------------------- EVENT VIEWS -------------------- #
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def event_list(request):
-    events = Add_Event_Model.objects.select_related('category').all()
-    return render(request, 'event_list.html', {'events': events})
+class EventListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Add_Event_Model
+    template_name = 'event_list.html'
+    context_object_name = 'events'
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def event_create(request):
-    if request.method == "POST":
-        form = Add_Event(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('event_list')
-    else:
-        form = Add_Event()
-    return render(request, 'event_form.html', {'form': form})
+    def test_func(self):
+        return is_organizer or is_admin
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def event_update(request, pk):
-    event = get_object_or_404(Add_Event_Model, pk=pk)
-    if request.method == "POST":
-        form = Add_Event(request.POST, instance=event)
-        if form.is_valid():
-            form.save()
-            return redirect('event_list')
-    else:
-        form = Add_Event(instance=event)
-    return render(request, 'update_event.html', {'form': form})
+    def get_queryset(self):
+        return Add_Event_Model.objects.select_related('category').all()
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def event_delete(request, pk):
-    event = get_object_or_404(Add_Event_Model, pk=pk)
-    if request.method == "POST":
-        event.delete()
-        return redirect('event_list')
-    return render(request, 'event_confirm_delete.html', {'event': event})
+    
+class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Add_Event_Model
+    form_class = Add_Event  
+    template_name = 'update_event.html'
+    success_url = reverse_lazy('event_list')  
 
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Add_Event_Model, pk=self.kwargs['pk'])
+    
+class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Add_Event_Model
+    template_name = 'event_confirm_delete.html'
+    success_url = reverse_lazy('event_list') 
+
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Add_Event_Model, pk=self.kwargs['pk'])
 
 # -------------------- PARTICIPANT VIEWS -------------------- #
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def participant_list(request):
-    participants = Create_Participant_Model.objects.prefetch_related('event_assign').all()
-    return render(request, 'participant_list.html', {'participants': participants})
+class ParticipantListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Create_Participant_Model
+    template_name = 'participant_list.html'
+    context_object_name = 'participants'  
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def participant_create(request):
-    if request.method == "POST":
-        form = Create_Participant_Form(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('participant_list')
-    else:
-        form = Create_Participant_Form()
-    return render(request, 'create_participant.html', {'form': form})
+    def test_func(self):
+        return is_organizer or is_admin
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def participant_update(request, pk):
-    participant = get_object_or_404(Create_Participant_Model, pk=pk)
-    if request.method == "POST":
-        form = Create_Participant_Form(request.POST, instance=participant)
-        if form.is_valid():
-            form.save()
-            return redirect('participant_list')
-    else:
-        form = Create_Participant_Form(instance=participant)
-    return render(request, 'update_participant.html', {'form': form})
+    def get_queryset(self):
+        return Create_Participant_Model.objects.prefetch_related('event_assign').all()
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def participant_delete(request, pk):
-    participant = get_object_or_404(Create_Participant_Model, pk=pk)
-    if request.method == "POST":
-        participant.delete()
-        return redirect('participant_list')
-    return render(request, 'participant_confirm_delete.html', {'participant': participant})
 
+class ParticipantCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Create_Participant_Model
+    form_class = Create_Participant_Form  
+    template_name = 'create_participant.html'
+    success_url = reverse_lazy('participant_list') 
+
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def form_valid(self, form):
+        return super().form_valid(form)
+    
+class ParticipantUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Create_Participant_Model
+    form_class = Create_Participant_Form
+    template_name = 'update_participant.html'
+    success_url = reverse_lazy('participant_list') 
+
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Create_Participant_Model, pk=self.kwargs['pk'])
+
+class ParticipantDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Create_Participant_Model
+    template_name = 'participant_confirm_delete.html'
+    success_url = reverse_lazy('participant_list') 
+
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Create_Participant_Model, pk=self.kwargs['pk'])
 
 # -------------------- CATEGORY VIEWS -------------------- #
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def category_list(request):
-    categories = Category_Model.objects.all()
-    return render(request, 'category_list.html', {'categories': categories})
+class CategoryListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Category_Model
+    template_name = 'category_list.html'
+    context_object_name = 'categories'
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def category_create(request):
-    if request.method == "POST":
-        form = Add_Category(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('category_list')
-    else:
-        form = Add_Category()
-    return render(request, 'create_category.html', {'form': form})
+    def test_func(self):
+        return is_organizer or is_admin
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def category_update(request, pk):
-    category = get_object_or_404(Category_Model, pk=pk)
-    if request.method == "POST":
-        form = Add_Category(request.POST, instance=category)
-        if form.is_valid():
-            form.save()
-            return redirect('category_list')
-    else:
-        form = Add_Category(instance=category)
-    return render(request, 'update_category.html', {'form': form})
+    def get_queryset(self):
+        return Category_Model.objects.all()
+    
+class CategoryCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Category_Model
+    form_class = Add_Category  
+    template_name = 'create_category.html'
+    success_url = reverse_lazy('category_list')  
 
-@login_required
-@user_passes_test(is_organizer or is_admin,login_url="sign-in")
-def category_delete(request, pk):
-    category = get_object_or_404(Category_Model, pk=pk)
-    if request.method == "POST":
-        category.delete()
-        return redirect('category_list')
-    return render(request, 'category_confirm_delete.html', {'category': category})
+    def test_func(self):
+        return is_organizer or is_admin
 
-@login_required
-def rsvp_event(request, event_id):
-    event = get_object_or_404(Add_Event_Model, id=event_id)
-    if RSVP_Model.objects.filter(user=request.user, event=event).exists():
-        messages.error(request, "You have already RSVP'd for this event.")
+    def form_valid(self, form):
+        return super().form_valid(form)
+    
+class CategoryUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Category_Model
+    form_class = Add_Category  
+    template_name = 'update_category.html'
+    success_url = reverse_lazy('category_list')
+
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Category_Model, pk=self.kwargs['pk'])
+    
+class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Category_Model
+    template_name = 'category_confirm_delete.html'
+    success_url = reverse_lazy('category_list') 
+
+    def test_func(self):
+        return is_organizer or is_admin
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Category_Model, pk=self.kwargs['pk'])
+    
+class RSVPEventView(LoginRequiredMixin, View):
+    def post(self, request, event_id):
+        event = get_object_or_404(Add_Event_Model, id=event_id)
+        
+        if RSVP_Model.objects.filter(user=request.user, event=event).exists():
+            messages.error(request, "You have already RSVP'd for this event.")
+            return redirect('event_rsvps_dashboard')
+        
+        RSVP_Model.objects.create(user=request.user, event=event)
+        
+        send_mail(
+            "Event RSVP Confirmation",
+            f"You have successfully RSVP'd for {event.name}.",
+            "itsectorcommunication@gmail.com",
+            [request.user.email],
+            fail_silently=True,
+        )
+
+        messages.success(request, "RSVP confirmed. A confirmation email has been sent.")
         return redirect('event_rsvps_dashboard')
     
-    RSVP_Model.objects.create(user=request.user, event=event)
-    send_mail(
-        "Event RSVP Confirmation",
-        f"You have successfully RSVP'd for {event.name}.",
-        "itsectorcommunication@gmail.com",
-        [request.user.email],
-        fail_silently=True,
-    )
 
-    messages.success(request, "RSVP confirmed. A confirmation email has been sent.")
-    return redirect('event_rsvps_dashboard')
+class RSVPsView(LoginRequiredMixin, ListView):
+    model = Add_Event_Model
+    template_name = 'event_dashboard.html'  
+    context_object_name = 'events' 
 
+    def get_queryset(self):
+        return Add_Event_Model.objects.filter(rsvp_model__user=self.request.user)
 
-def my_rsvps(request):
-    events = Add_Event_Model.objects.filter(rsvp_model__user=request.user)  
-    return render(request, 'event_dashboard.html', {'events': events})
+class EventDetailView(DetailView):
+    model = Add_Event_Model
+    template_name = 'event_detail.html'
+    context_object_name = 'event'  
 
-
-def event_detail(request, event_id):
-    event = get_object_or_404(Add_Event_Model, id=event_id)
-    return render(request, 'event_detail.html', {'event': event})
-
+    def get_object(self, queryset=None):
+        return get_object_or_404(Add_Event_Model, id=self.kwargs['event_id'])

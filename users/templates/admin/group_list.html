@@ -9,15 +9,15 @@
 <body>
     {% include "share/navbar.html" %}
  
-    <table class="table-auto w-full my-16 border-collapse border border-gray-200 shadow-lg rounded-lg text-left">
-        <thead class="bg-blue-500 text-white">
+    <table style="width:80%;" class="table-auto mx-auto my-16 border-collapse border border-gray-200 shadow-lg rounded-lg text-left">
+        <thead class="bg-blue-500 text-white text-center rounded-lg">
             <tr>
                 <th class="px-6 py-3 border border-gray-300 text-left">Group Name</th>
                 <th class="px-6 py-3 border border-gray-300 text-left">Permission</th>
             </tr>
         </thead>
 
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="bg-white divide-y divide-gray-200 rounded-lg">
             {% for group in groups %}
                 <tr class="hover:bg-blue-100 transition">
                     <td class="px-6 py-4 border border-gray-300">{{ group.name }}</td>
