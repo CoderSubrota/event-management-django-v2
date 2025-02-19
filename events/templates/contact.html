@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "cdn/cdn.html" %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+</head>
+<body class="bg-gray-100">
+
+    {% include "share/navbar.html" %}
+
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Contact Information</h2>
+
+            <div class="space-y-6">
+                <div class="flex items-center space-x-4">
+                    <span class="bg-blue-500 text-white p-3 rounded-full">
+                        📍
+                    </span>
+                    <div>
+                        <h3 class="text-lg font-medium">Location</h3>
+                        <p class="text-gray-600">123 Street Name, London, UK</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <span class="bg-green-500 text-white p-3 rounded-full">
+                        📧
+                    </span>
+                    <div>
+                        <h3 class="text-lg font-medium">Email</h3>
+                        <p class="text-gray-600">contact@xtech.com</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <span class="bg-red-500 text-white p-3 rounded-full">
+                        📞
+                    </span>
+                    <div>
+                        <h3 class="text-lg font-medium">Phone</h3>
+                        <p class="text-gray-600">+44 123 456 789</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "share/footer.html" %}
+
+</body>
+</html>

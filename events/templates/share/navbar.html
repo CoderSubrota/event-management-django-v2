@@ -14,7 +14,7 @@
                     <a href="{% url 'home' %}" class="hover:text-emerald-500 transition duration-300">Home</a>
                 </li>
                 <li>
-                    <a href="#" class="hover:text-emerald-500 transition duration-300">Contact</a>
+                    <a href="{% url 'contact_us' %}" class="hover:text-emerald-500 transition duration-300">Contact</a>
                 </li>
 
                {% if user.is_authenticated %}

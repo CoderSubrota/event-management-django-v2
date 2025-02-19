@@ -1,7 +1,6 @@
 from django.db import models
-
 from django.contrib.auth import get_user_model
-
+from event_management import settings
 CustomUser = get_user_model()
 # Create your models here.
 class Category_Model(models.Model):
@@ -18,7 +17,7 @@ class Add_Event_Model(models.Model):
     date = models.DateField()
     time = models.TimeField()
     location = models.TextField()
-    image = models.ImageField(max_length=5200,upload_to='event_images/', default='event_images/images_1.jpeg')
+    image = models.ImageField(max_length=5200,upload_to='event_images/', default='event_images/default.png')
    
     category = models.ForeignKey(
     Category_Model,  
@@ -38,8 +37,9 @@ class Create_Participant_Model(models.Model):
     def __str__(self):
         return self.name
 
+
 class RSVP_Model(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     event = models.ForeignKey(Add_Event_Model, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 

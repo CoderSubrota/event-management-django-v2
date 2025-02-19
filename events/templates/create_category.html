@@ -6,19 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Category</title>
 </head>
-<body>
+<body class="h-screen">
+
     {% include "share/navbar.html" %}
-    {% if message %}
-      <p  class="text-center my-4 text-3xl bg-green-400 py-2 rounded-lg  font-medium text-white w-96 m-auto"> {{message}} </p>
-{% endif %}
 
-    <form  method="post"  action="{% url 'create_category' %}" class="mx-auto my-16 w-6/12 text-green-500 text-2xl font-bold">
+    <div class="mx-auto w-xl my-10 bg-white p-6 rounded-lg shadow-lg text-center">
+        <h2 class="text-gray-800 text-2xl font-bold mb-4">Add Category</h2>
 
-        {% csrf_token %}
-          {{form}}
-        <button type="submit" class="p-3 rounded-4xl w-full  bg-blue-700 font-bold text-white text-center my-4"> Save Category </button>
-    </form> 
+        {% if message %}
+            <p class="bg-green-500 text-white py-2 rounded-md font-medium mb-4">
+                {{ message }}
+            </p>
+        {% endif %}
+
+        <form method="post" action="{% url 'create_category' %}" class="flex flex-col space-y-4">
+            {% csrf_token %}
+            <div class="text-left space-y-2">
+                {{ form.as_p }}
+            </div>
+
+            <button type="submit" 
+                class="bg-blue-600 text-white font-bold py-3 rounded-md transition hover:bg-blue-700">
+                Save Category
+            </button>
+        </form>
+    </div>
+
     {% include "share/footer.html" %}
-
 </body>
 </html>

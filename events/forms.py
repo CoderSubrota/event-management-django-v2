@@ -58,22 +58,4 @@ class Add_Category (forms.ModelForm):
         
         def __init__(self, *args, **kwargs):
             super().__init__(*args,**kwargs)
-            
-class Create_Participant_Form(forms.ModelForm):
-    class Meta:
-        model = Create_Participant_Model
-        fields = ['name', 'email', 'event_assign']
-
-        widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'py-3 px-4 rounded-xl w-full my-4 border border-indigo-500 focus:ring-4 focus:ring-indigo-700',
-                'placeholder': 'Enter participant name'
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'py-3 px-4 rounded-xl w-full my-4 border border-indigo-500 focus:ring-4 focus:ring-indigo-700',
-                'placeholder': 'Enter participant email'
-            }),
-            'event_assign': forms.CheckboxSelectMultiple(attrs={
-                'class': 'flex flex-col space-y-2 my-4'
-            })
-        }
+     

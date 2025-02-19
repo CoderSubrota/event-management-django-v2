@@ -1,5 +1,5 @@
 from django.shortcuts import render,get_object_or_404, redirect
-from events.forms import Add_Event,Create_Participant_Form,Add_Category
+from events.forms import Add_Event,Add_Category
 from django.db.models import Count,Q
 from django.utils.timezone import now
 from .models import Add_Event_Model, Create_Participant_Model, Category_Model,RSVP_Model
@@ -8,8 +8,12 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic.edit import FormView,UpdateView,DeleteView,CreateView
 from django.urls import reverse_lazy
+from django.contrib.auth import get_user_model
 from django.views.generic import ListView,TemplateView,DetailView,View
+from users.forms import AddParticipantForm,EditParticipantProfileForm
+from django.http import HttpResponseRedirect
 
+CustomUser = get_user_model()
 # ------------------
 def is_organizer(user):
     return user.groups.filter(name='Organizer').exists()
@@ -42,22 +46,6 @@ class AddEventView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         context['form'] = self.get_form()
         return context
     
-class CreateParticipantView(LoginRequiredMixin, UserPassesTestMixin, FormView):
-    template_name = 'create_participant.html'
-    form_class = Create_Participant_Form
-    success_url = reverse_lazy('create_participant')  # Adjust the URL name as needed
-
-    def test_func(self):
-        return is_organizer or is_admin
-
-    def form_valid(self, form):
-        form.save()
-        return self.render_to_response(self.get_context_data(form=form, message='Participant added successfully!'))
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = self.get_form()
-        return context
     
 class CreateCategoryView(LoginRequiredMixin, UserPassesTestMixin, FormView):
     template_name = 'create_category.html'
@@ -171,7 +159,7 @@ class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 # -------------------- PARTICIPANT VIEWS -------------------- #
 class ParticipantListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
-    model = Create_Participant_Model
+    model = CustomUser
     template_name = 'participant_list.html'
     context_object_name = 'participants'  
 
@@ -179,24 +167,11 @@ class ParticipantListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return is_organizer or is_admin
 
     def get_queryset(self):
-        return Create_Participant_Model.objects.prefetch_related('event_assign').all()
+        return CustomUser.objects.filter(groups__name="Participant").prefetch_related('event_assign')
 
-
-class ParticipantCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-    model = Create_Participant_Model
-    form_class = Create_Participant_Form  
-    template_name = 'create_participant.html'
-    success_url = reverse_lazy('participant_list') 
-
-    def test_func(self):
-        return is_organizer or is_admin
-
-    def form_valid(self, form):
-        return super().form_valid(form)
-    
 class ParticipantUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = Create_Participant_Model
-    form_class = Create_Participant_Form
+    model = CustomUser
+    form_class = EditParticipantProfileForm
     template_name = 'update_participant.html'
     success_url = reverse_lazy('participant_list') 
 
@@ -204,10 +179,14 @@ class ParticipantUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView)
         return is_organizer or is_admin
 
     def get_object(self, queryset=None):
-        return get_object_or_404(Create_Participant_Model, pk=self.kwargs['pk'])
+        return get_object_or_404(CustomUser, pk=self.kwargs['pk'])
+          
+    def form_valid(self, form):
+        form.instance.save() 
+        return super().form_valid(form)
 
 class ParticipantDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = Create_Participant_Model
+    model = CustomUser
     template_name = 'participant_confirm_delete.html'
     success_url = reverse_lazy('participant_list') 
 
@@ -215,7 +194,7 @@ class ParticipantDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView)
         return is_organizer or is_admin
 
     def get_object(self, queryset=None):
-        return get_object_or_404(Create_Participant_Model, pk=self.kwargs['pk'])
+        return get_object_or_404(CustomUser, pk=self.kwargs['pk'])
 
 # -------------------- CATEGORY VIEWS -------------------- #
 class CategoryListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -267,24 +246,35 @@ class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 class RSVPEventView(LoginRequiredMixin, View):
     def post(self, request, event_id):
         event = get_object_or_404(Add_Event_Model, id=event_id)
-        
+        CustomUser = get_user_model()
+
+        if not isinstance(request.user, CustomUser):
+            messages.error(request, "User is not recognized as CustomUser.")
+            return redirect("sign-in")
+
         if RSVP_Model.objects.filter(user=request.user, event=event).exists():
             messages.error(request, "You have already RSVP'd for this event.")
             return redirect('event_rsvps_dashboard')
-        
-        RSVP_Model.objects.create(user=request.user, event=event)
-        
-        send_mail(
-            "Event RSVP Confirmation",
-            f"You have successfully RSVP'd for {event.name}.",
-            "itsectorcommunication@gmail.com",
-            [request.user.email],
-            fail_silently=True,
-        )
 
-        messages.success(request, "RSVP confirmed. A confirmation email has been sent.")
+        RSVP_Model.objects.create(user=request.user, event=event)
+
+        participants = CustomUser.objects.filter(event_assign=event)
+        recipient_emails = [participant.email for participant in participants if participant.email]
+
+        if recipient_emails:
+            try:
+                send_mail(
+                    subject="You're Invited: Upcoming Event",
+                    message=f"Hello,\n\nYou are assigned to {event.name}. Please confirm your participation.\n\nBest Regards,\nEvent Team",
+                    from_email="itsectorcommunication@gmail.com",
+                    recipient_list=recipient_emails, 
+                    fail_silently=False, 
+                )
+                messages.success(request, "RSVP confirmed. A confirmation email has been sent to all participants.")
+            except Exception as e:
+                messages.error(request, f"Email sending failed: {e}")
+
         return redirect('event_rsvps_dashboard')
-    
 
 class RSVPsView(LoginRequiredMixin, ListView):
     model = Add_Event_Model
@@ -301,3 +291,32 @@ class EventDetailView(DetailView):
 
     def get_object(self, queryset=None):
         return get_object_or_404(Add_Event_Model, id=self.kwargs['event_id'])
+#-------------------------------
+
+class CreateParticipantView(CreateView):
+    form_class = AddParticipantForm
+    template_name = 'add_participant.html'
+    success_url = reverse_lazy('sign-in')
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.set_password(form.cleaned_data.get('password1'))
+        user.is_active = False
+
+        if self.request.FILES:
+            user.profile_image = self.request.FILES.get('profile_image')
+
+        user.save()
+
+        messages.success(self.request, 'A confirmation mail has been sent. Please check your participant email and ask him to verify.Now Go to the home page !! Great')
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return self.success_url
+    
+class ContactUsView(View):
+    template_name = 'contact.html'
+    
+    def get(self, request):
+        return render(request,self.template_name)

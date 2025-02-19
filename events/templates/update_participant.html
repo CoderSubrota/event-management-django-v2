@@ -4,28 +4,65 @@
     {% include "cdn/cdn.html" %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create participant</title>
+    <title>Update Participant</title>
 </head>
 <body>
     {% include "share/navbar.html" %}
+   
+    <div class="flex items-center justify-center min-h-screen">
+        <form method="POST" class="  shadow-lg shadow-gray-50 text-white rounded-lg p-8 w-2xl" enctype="multipart/form-data">
+            <h2 class="text-2xl font-semibold text-white mb-4">Update Participant</h2>
+            {% csrf_token %}
 
+            <div class="space-y-4">
+                <label for="First Name" class="block text-white font-medium mb-1">First Name</label>
+                {{ form.first_name }}
+            </div>
 
-     <form  method="post" class="mx-auto my-16 w-6/12 text-green-500 text-2xl font-bold shadow-2xl shadow-blue-300  rounded-lg p-5">
-        {% csrf_token %}
-        <label for="Name" class="text-white"> Name </label>
+            <div class="space-y-4">
+                <label for="Last Name" class="block text-white font-medium mb-1">Last Name</label>
+                {{ form.last_name }}
+            </div>
 
-        {{form.name}}
-        <label for="Email" class="text-white"> Email </label>
+            <div class="space-y-4">
+                <label for="Email" class="block text-white font-medium mb-1">Email</label>
+                {{ form.email }}
+            </div>
+            <div class="space-y-4">
+                <label for="Phone number" class="block text-white font-medium mb-1">Phone number</label>
+                {{ form.phone_number }}
+            </div>
 
-        {{form.email}}
-        <label for="Event assign" class="text-white"> Event assign </label>
-        <div class="h-56 overflow-auto">
-            
-            {{form.event_assign}}
-        </div>
-          <button type="submit" class="my-3 text-white rounded-3xl p-3 bg-green-400 w-full hover:cursor-pointer">Save Participant</button>
-     </form>
+            <div class="space-y-4">
+                <label for="profile_image" class="block text-white font-medium mb-1">Profile Image</label>
+                {{ form.profile_image }}
+            </div>
 
+            {% if "Organizer" in request.user.groups.all|join:"," %}
+            <div class="space-y-4">
+                <label for="event_assign" class="block text-white font-medium mb-1">Event Assign</label>
+                {{ form.event_assign }}
+            </div>
+            {% endif %}
+
+            <!-- Error messages -->
+            {% if form.errors %}
+                <div class="text-red-500">
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field|title }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 mt-6 rounded-lg hover:bg-blue-600 transition">
+               Save
+            </button>
+        </form>
+    </div>
     {% include "share/footer.html" %}
 </body>
 </html>

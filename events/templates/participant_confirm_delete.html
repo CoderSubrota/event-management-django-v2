@@ -22,10 +22,10 @@
 
     <form method="post" class="mt-8">
         {% csrf_token %}
-        <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-md mr-4">
+        <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-md mr-4 hover:cursor-pointer">
             Yes, Delete
         </button>
-        <a href="{% url 'participant_list' %}" class="bg-gray-500 text-white px-6 py-2 rounded-md">
+        <a href="{% url 'participant_list' %}" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:cursor-pointer">
             Cancel
         </a>
     </form>

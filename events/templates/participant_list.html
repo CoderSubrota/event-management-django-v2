@@ -10,25 +10,34 @@
 <body>
     {% include "share/navbar.html" %} 
     {% block content %}
-    <h1 class="text-2xl font-bold ms-4 my-4 text-white">Participants List</h1>
+    <h1 class="text-2xl font-bold ms-4 my-4 text-white">Participants List </h1>
     <a href="{% url 'add_participant' %}" class="bg-blue-500 ms-4  text-white px-4 py-2 rounded">Add Participant</a>
-    <table class="table-auto w-full border-collapse my-4 text-blue-500 font-bold">
+   <div  class="h-auto mx-5">
+    <table  class="table-auto w-full border-collapse my-4 text-white font-bold">
         <thead class="text-white">
-            <tr class="bg-green-400">
+            <tr class="bg-gray-400">
                 <th class="border px-4 py-2">Name</th>
                 <th class="border px-4 py-2">Email</th>
-                <th class="border px-4 py-2">Actions</th>
+                <th class="border px-4 py-2">Phone Number</th>
+                <th class="border px-4 py-2">Profile</th>
+                <th class="border px-4 py-2" colspan="2">Actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="text-center">
             {% for participant in participants %}
-            <tr>
-                <td class="border px-4 py-2">{{ participant.name }}</td>
+            <tr class="hover:bg-gray-500">
+                <td class="border px-4 py-2">{{ participant.first_name }} {{ participant.last_name }}</td>
                 <td class="border px-4 py-2">{{ participant.email }}</td>
+                <td class="border px-4 py-2">{{ participant.phone_number }}</td>
                 <td class="border px-4 py-2">
-                    <a href="{% url 'participant_update' participant.id %}" class="text-blue-500">Edit</a> |
-                    <a href="{% url 'participant_delete' participant.id %}" class="text-red-500">Delete</a>
+                    <img src="{{participant.profile_image.url}}" alt="profile image" class="h-20 w-20 mx-auto rounded-full ring-4 ring-green-300"/>
                 </td>
+                <td class="border px-4 py-2">
+                    <a href="{% url 'participant_update' participant.id %}" class="text-blue-500 text-xl"><i class="fa-solid fa-pen-to-square"></i></a> 
+                </td>
+                <td class="border px-4 py-2">
+                <a href="{% url 'participant_delete' participant.id %}" class="text-red-500  text-xl"><i class="fa-solid fa-trash-can"></i></a>
+            </td>
             </tr>
             {% empty %}
             <tr>
@@ -37,6 +46,7 @@
             {% endfor %}
         </tbody>
     </table>
+   </div>
     {% endblock %}
    
     {% include "share/footer.html" %}

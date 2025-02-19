@@ -1,6 +1,11 @@
 from django.urls import path
-from events.views import AddEventView,CreateParticipantView,CreateCategoryView,OrganizerDashboardView,ParticipantDeleteView,RSVPEventView,EventDetailView,RSVPsView
-from events.views import CategoryListView,CategoryUpdateView,CategoryDeleteView,EventListView,EventUpdateView,EventDeleteView,ParticipantListView,ParticipantUpdateView
+from events.views import (
+  AddEventView,CreateParticipantView,CreateCategoryView,
+  OrganizerDashboardView,CategoryListView,CategoryUpdateView,
+  CategoryDeleteView,EventListView,EventUpdateView,
+  ParticipantListView,ParticipantUpdateView , ParticipantDeleteView,
+  RSVPEventView,EventDetailView,RSVPsView,ContactUsView
+)
 
 urlpatterns =[
     path("add_event/", AddEventView.as_view(), name='add_event') ,
@@ -25,4 +30,6 @@ urlpatterns =[
    path('event/<int:event_id>/rsvp/', RSVPEventView.as_view(), name='rsvp_event'),
    path('event/<int:event_id>/', EventDetailView.as_view(), name='event_detail'),
    path('event_dashboard', RSVPsView.as_view(), name='event_rsvps_dashboard'),
+  #----------------
+  path('contact_us',ContactUsView.as_view(),name='contact_us')
 ]
